@@ -11,6 +11,7 @@ The app checks every download against the SHA-256 in its catalog. A file that di
 | Release | File | From | License |
 |---|---|---|---|
 | `birefnet-lite-512-v1` | `birefnet-lite-512.onnx` | BiRefNet lite by Peng Zheng and others, weights from [ZhengPeng7/BiRefNet_lite](https://huggingface.co/ZhengPeng7/BiRefNet_lite) at commit `aa62cd8` | MIT, [licenses/birefnet-mit.txt](licenses/birefnet-mit.txt) |
+| `realesrgan-general-x4v3-v1` | `realesrgan-general-x4v3.onnx` | Real-ESRGAN by Xintao Wang and others, weights `realesr-general-x4v3.pth` from [the v0.2.5.0 release](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0) | BSD-3-Clause, [licenses/realesrgan-bsd-3-clause.txt](licenses/realesrgan-bsd-3-clause.txt) |
 
 ### birefnet-lite-512.onnx
 
@@ -22,3 +23,13 @@ The app checks every download against the SHA-256 in its catalog. A file that di
 - Size: 180,826,801 bytes. SHA-256: `82a8e05569ce210d174e7dabe6765de80be42203f2fbd071cd6926a62fee7d91`.
 
 The BiRefNet paper: Zheng, Gao, Fan, Liu, Laaksonen, Ouyang and Sebe, "Bilateral Reference for High-Resolution Dichotomous Image Segmentation", CAAI Artificial Intelligence Research, 2024.
+
+### realesrgan-general-x4v3.onnx
+
+- What it does: enlarges a photo 4 times, drawing clean edges, and smooths noise and JPEG blocks while it enlarges.
+- Why a conversion: the authors publish PyTorch weights only.
+- How: the network (SRVGGNetCompact: 34 3x3 convolutions with PReLU, PixelShuffle x4, plus the input enlarged by nearest pixel) written out in `tools/convert_sr.py` in the PixelStudio repository; the released weights loaded strictly; exported with PyTorch, ONNX opset 17, free height and width.
+- Input `image`: 1 x 3 x H x W, RGB from 0 to 1. Output `output`: 1 x 3 x 4H x 4W, RGB from 0 to 1.
+- Size: 4,866,422 bytes. SHA-256: `db8b6c03ff50c0f315bb710b93d39a3df45481f0ef26d70aa1b0b1dc3e3cc0f2`.
+
+The Real-ESRGAN paper: Wang, Xie, Dong and Shan, "Real-ESRGAN: Training Real-World Blind Super-Resolution with Pure Synthetic Data", ICCV Workshops, 2021.
