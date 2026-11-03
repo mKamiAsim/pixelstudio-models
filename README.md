@@ -13,6 +13,7 @@ The app checks every download against the SHA-256 in its catalog. A file that di
 | `birefnet-lite-512-v1` | `birefnet-lite-512.onnx` | BiRefNet lite by Peng Zheng and others, weights from [ZhengPeng7/BiRefNet_lite](https://huggingface.co/ZhengPeng7/BiRefNet_lite) at commit `aa62cd8` | MIT, [licenses/birefnet-mit.txt](licenses/birefnet-mit.txt) |
 | `realesrgan-general-x4v3-v1` | `realesrgan-general-x4v3.onnx` | Real-ESRGAN by Xintao Wang and others, weights `realesr-general-x4v3.pth` from [the v0.2.5.0 release](https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.5.0) | BSD-3-Clause, [licenses/realesrgan-bsd-3-clause.txt](licenses/realesrgan-bsd-3-clause.txt) |
 | `mediapipe-face-landmarker-v1` | `mediapipe-face-detector.onnx`, `mediapipe-face-landmarks.onnx` | MediaPipe Face Landmarker by Google, [face_landmarker.task version 1](https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task) | Apache-2.0, [licenses/apache-2.0.txt](licenses/apache-2.0.txt) |
+| `ddcolor-tiny-512-v1` | `ddcolor-tiny-512.onnx` | DDColor tiny by Xiaoyang Kang and others, weights from [piddnad/ddcolor_paper_tiny](https://huggingface.co/piddnad/ddcolor_paper_tiny) at revision `cf9fd99` | Apache-2.0, [licenses/apache-2.0.txt](licenses/apache-2.0.txt) |
 
 ### birefnet-lite-512.onnx
 
@@ -45,3 +46,14 @@ The Real-ESRGAN paper: Wang, Xie, Dong and Shan, "Real-ESRGAN: Training Real-Wor
 - `mediapipe-face-landmarks.onnx`: input `input_12` 1 x 256 x 256 x 3, RGB from 0 to 1, a crop around one face; outputs `Identity` 1 x 1 x 1 x 1434 (478 points x, y, z in crop pixels), `Identity_1` and `Identity_2`, two single values that PixelStudio does not use. Size: 4,921,043 bytes. SHA-256: `0d5c53356ece4c02ec7dc7d4e6722c79dd9c19f69b8b2b0c9ddb6570f8b7579a`.
 
 The model cards: [BlazeFace short range](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf) and [Face Mesh V2](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf).
+
+### ddcolor-tiny-512.onnx
+
+- What it does: gives a black and white photo likely colours. It predicts the a and b channels of Lab; the app joins them to the photo's own lightness, so no detail is lost.
+- Why a conversion: the authors publish PyTorch weights only.
+- How: `tools/convert_ddcolor.py` in the PixelStudio repository loads the authors' network (github.com/piddnad/DDColor, commit `2adb63f`) with the weights of `piddnad/ddcolor_paper_tiny` (`pytorch_model.bin`, SHA-256 `8a1277bc90a1bfbb6d2d83933a9a6bc821931879ca93e26e4fcec12165d41fce`) strictly, exports it with PyTorch, ONNX opset 17, at 512 x 512, then stores the weights in half precision with float input and output (onnxconverter-common). The script gives the same file byte for byte each run.
+- Checked: the float export matches PyTorch within 0.002 on a and b; half precision moves them by under 1 unit.
+- Input `image`: 1 x 3 x 512 x 512, the photo's lightness alone as RGB from 0 to 1 (resize, take Lab L, set a and b to 0, back to RGB). Output `ab`: 1 x 2 x 512 x 512, Lab a and b.
+- Size: 135,444,379 bytes. SHA-256: `fe13c421dad616223591ed388504a6f3e3628028c55b5961832cf28b3d51acf4`.
+
+The DDColor paper (its README's citation): Kang, Yang, Ouyang, Ren, Li and Xie, "DDColor: Towards Photo-Realistic Image Colorization via Dual Decoders", ICCV 2023, pages 328 to 338.
